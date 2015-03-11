@@ -22,7 +22,23 @@
     NSError* returnError;
     NSString * xmlstring = @"<\?xml version=\"1.0\" encoding=\"UTF-8\"\?><root><resultCode>0</resultCode><msg></msg><data><userBaseInfo><userId>924886</userId><cStatus>0</cStatus><nickName>设备924886</nickName><sex>1</sex><city></city><car>08款 2.5S 特别纪念版</car><signature> </signature><class>0</class><userPhoto>user_photo.gif</userPhoto><mobileNo> </mobileNo><email> </email><terminalId>17765115</terminalId><qqUid></qqUid><sinaUid></sinaUid></userBaseInfo><userDetailInfo><displacement>0.0</displacement><carNumber>粤BRN358</carNumber><carColor> </carColor><age>0</age><openMobileNo>2</openMobileNo><openCarInfo>1</openCarInfo><teamVerifyType>1</teamVerifyType><teamId>0</teamId><brand>丰田</brand></userDetailInfo><blog></blog></data></root>";
     
-    GDataXMLDocument *document = [[GDataXMLDocument alloc] initWithData:[xmlstring dataUsingEncoding:NSUTF8StringEncoding] options:0 error:&Xmlerror];
+    NSString * xmlstring2 = @"<\?xml version=\"1.0\" encoding=\"UTF-8\"\?><root><data><recv><userID>10001</userID><sex>1</sex></recv><recv><userID>10002</userID><sex>0</sex></recv></data></root>";
+    
+    NSArray * arrayKey = [[NSArray alloc]initWithObjects:@"userBaseInfo", @"userDetailInfo",@"blog",nil];
+    
+    NSArray * arrayKey2 = [[NSArray alloc]initWithObjects:@"recv", nil];
+    [self analysisDataFromXML:xmlstring2 Key:arrayKey2];
+    
+    
+
+}
+
+
+
+-(NSArray *)analysisDataFromXML:(NSString *)xmlString Key:(NSArray *)key{
+    NSMutableArray * array = [[NSMutableArray alloc]initWithCapacity:10];
+    NSError* Xmlerror;
+    GDataXMLDocument *document = [[GDataXMLDocument alloc] initWithData:[xmlString dataUsingEncoding:NSUTF8StringEncoding] options:0 error:&Xmlerror];
     if (document != nil)
     {
         //取出xml的根节点
@@ -35,40 +51,37 @@
         GDataXMLElement* bodyElement = [[rootElement elementsForName:@"data"]objectAtIndex:0];
         NSLog(@"--------body:--------\n%@", bodyElement);
         
-        NSArray* childrenBody = [bodyElement children];
-       GDataXMLElement* bodyElement1 = childrenBody[2];
+        //NSArray* childrenBody = [bodyElement children];
+        //GDataXMLElement* bodyElement1 = childrenBody[2];
         
         
         for (GDataXMLElement *item in children)
         {
-            NSArray *names = [item elementsForName:@"userBaseInfo"];
-            
-            for(GDataXMLElement *name in names)
-            {
-                NSLog(@">>> my name is : %d", name.childCount);
+            for (NSString * string in key) {
+                //NSArray *names = [item elementsForName:@"userBaseInfo"];
                 
-                for (NSUInteger index = 0; index < name.childCount; index++) {
-                    GDataXMLElement *data =  name.children[index];
-                    NSLog(@">>> Key:%@ name%@", data.stringValue, data.name);
+                NSArray *names = [item elementsForName:string];
+                for(GDataXMLElement *name in names)
+                {
+                    NSMutableDictionary * dic = [[NSMutableDictionary alloc]initWithCapacity:10];
+                    NSLog(@">>> my name is : %lu", (unsigned long)name.childCount);
+                    
+                    for (NSUInteger index = 0; index < name.childCount; index++) {
+                        GDataXMLElement *data =  name.children[index];
+                        NSLog(@">>> Key:%@ name:%@", data.stringValue, data.name);
+                        
+                        [dic setObject:data.stringValue forKey:data.name];
+                    }
+                    
+                    [array addObject:dic];
                 }
-            }
-            
-            NSArray *levels = [item elementsForName:@"userDetailInfo"];
-            for(GDataXMLElement *level in levels)
-            {
-                NSLog(@">>> my level is : %d",level.childCount);
-            }
-            
-            NSArray *blog = [item elementsForName:@"blog"];
-            for(GDataXMLElement *level1 in blog)
-            {
-                NSLog(@">>> my level is : %d", level1.childCount);
+                
+                
             }
         }
-        //某个具体节点的文本内容
-        //NSString* content = [bodyElement stringValue];
     }
     
+    return array;
     
 }
 
