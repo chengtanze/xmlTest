@@ -20,15 +20,21 @@
     
     NSError* Xmlerror;
     NSError* returnError;
-    NSString * xmlstring = @"<\?xml version=\"1.0\" encoding=\"UTF-8\"\?><root><resultCode>0</resultCode><msg></msg><data><userBaseInfo><userId>924886</userId><cStatus>0</cStatus><nickName>设备924886</nickName><sex>1</sex><city></city><car>08款 2.5S 特别纪念版</car><signature> </signature><class>0</class><userPhoto>user_photo.gif</userPhoto><mobileNo> </mobileNo><email> </email><terminalId>17765115</terminalId><qqUid></qqUid><sinaUid></sinaUid></userBaseInfo><userDetailInfo><displacement>0.0</displacement><carNumber>粤BRN358</carNumber><carColor> </carColor><age>0</age><openMobileNo>2</openMobileNo><openCarInfo>1</openCarInfo><teamVerifyType>1</teamVerifyType><teamId>0</teamId><brand>丰田</brand></userDetailInfo><blog></blog></data></root>";
+    NSString * xmlstring = @"<\?xml version=\"1.0\" encoding=\"UTF-8\"\?><root><resultCode>0</resultCode><msg>9001</msg><data><userBaseInfo><userId>924886</userId><cStatus>0</cStatus><nickName>设备924886</nickName><sex>1</sex><city></city><car>08款 2.5S 特别纪念版</car><signature> </signature><class>0</class><userPhoto>user_photo.gif</userPhoto><mobileNo> </mobileNo><email> </email><terminalId>17765115</terminalId><qqUid></qqUid><sinaUid></sinaUid></userBaseInfo><userDetailInfo><displacement>0.0</displacement><carNumber>粤BRN358</carNumber><carColor> </carColor><age>0</age><openMobileNo>2</openMobileNo><openCarInfo>1</openCarInfo><teamVerifyType>1</teamVerifyType><teamId>0</teamId><brand>丰田</brand></userDetailInfo><blog></blog></data></root>";
     
     NSString * xmlstring2 = @"<\?xml version=\"1.0\" encoding=\"UTF-8\"\?><root><data><recv><userID>10001</userID><sex>1</sex></recv><recv><userID>10002</userID><sex>0</sex></recv></data></root>";
     
     NSArray * arrayKey = [[NSArray alloc]initWithObjects:@"userBaseInfo", @"userDetailInfo",@"blog",nil];
     
-    NSArray * arrayKey2 = [[NSArray alloc]initWithObjects:@"recv", nil];
-    [self analysisDataFromXML:xmlstring2 Key:arrayKey2];
+    NSArray * arrayKey2 = [[NSArray alloc]initWithObjects:@"resultCode", nil];
     
+    NSArray * arrayKey3 = [[NSArray alloc]initWithObjects:@"msg", nil];
+    
+    
+    NSArray * array = [self analysisDataFromXML:xmlstring Key:arrayKey3];
+    if (array.count > 0) {
+        NSString * errorMsg = [array[0] valueForKey:@"msg"];
+    }
     
 
 }
@@ -49,7 +55,7 @@
         //NSLog(@"--------root's children:--------\n%@", children);
         //取出某一个具体节点(body节点)
         GDataXMLElement* bodyElement = [[rootElement elementsForName:@"data"]objectAtIndex:0];
-        NSLog(@"--------body:--------\n%@", bodyElement);
+        //NSLog(@"--------body:--------\n%@", bodyElement);
         
         //NSArray* childrenBody = [bodyElement children];
         //GDataXMLElement* bodyElement1 = childrenBody[2];
@@ -58,8 +64,9 @@
         for (GDataXMLElement *item in children)
         {
             for (NSString * string in key) {
-                //NSArray *names = [item elementsForName:@"userBaseInfo"];
-                
+                //NSArray *names = [item elementsForName:@"resultCode"];
+           
+                //循环该item下的所有子节点
                 NSArray *names = [item elementsForName:string];
                 for(GDataXMLElement *name in names)
                 {
@@ -75,8 +82,12 @@
                     
                     [array addObject:dic];
                 }
-                
-                
+                //如果这个item没有子节点，直接获取该item的值
+                if (names == nil && [item.name isEqualToString:string]) {
+                    NSMutableDictionary * dic = [[NSMutableDictionary alloc]initWithCapacity:10];
+                    [dic setObject:item.stringValue forKey:item.name];
+                    [array addObject:dic];
+                }
             }
         }
     }
